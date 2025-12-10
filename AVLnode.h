@@ -1,6 +1,4 @@
-//
-// Created by alaah on 11/02/2024.
-//
+
 
 #ifndef DATAHW1_AVLNODE_H
 #define DATAHW1_AVLNODE_H
@@ -60,3 +58,4 @@ bool AVLnode<Key, DataType>::operator==( Key &other) const{
 
 
 #endif //DATAHW1_AVLNODE_H
+
