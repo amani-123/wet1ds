@@ -1,13 +1,17 @@
+#ifndef STUDENT_H
+#define STUDENT_H
+
 class student {
-    int num_courses;
-    int base_points;
     int id;
     int private_points;
+    int num_courses;
+    int base_points;
+    
 
  public:
 
     
-student(int id, int global_offset)
+    student(int id, int global_offset)
         : id(id),
           private_points(0),
           num_courses(0),
@@ -24,3 +28,4 @@ student(int id, int global_offset)
 
 
 };
+#endif // STUDENT_H
