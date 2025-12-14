@@ -13,7 +13,7 @@ TechSystem::TechSystem()
 
 TechSystem::~TechSystem()
 {
-    global_points=0;
+    /*global_points=0;
     
     destroyCourseStudents(courses.m_root);
 
@@ -23,11 +23,11 @@ TechSystem::~TechSystem()
 
     students.destroyTree(students.m_root);
     students.m_root = nullptr;
-    students.m_size = 0;
+    students.m_size = 0;*/
     
 }
 
-void destroyCourseStudents(AVLnode<int, std::shared_ptr<course>>* node) {
+/*void destroyCourseStudents(AVLnode<int, std::shared_ptr<course>>* node) {
     if (!node) return;
 
     destroyCourseStudents(node->left);
@@ -36,7 +36,7 @@ void destroyCourseStudents(AVLnode<int, std::shared_ptr<course>>* node) {
     node->data->getStudentsTree().destroyTree(node->data->getStudentsTree().m_root);
     node->data->getStudentsTree().m_root = nullptr;
     node->data->getStudentsTree().m_size = 0;
-}
+}*/
 
 
 
@@ -45,7 +45,7 @@ StatusType TechSystem::addStudent(int studentId)
     if(studentId<=0){
         return StatusType::INVALID_INPUT;
     }
-    if(!students.ifExist(studentId)){
+    if(students.ifExist(studentId)){
         return StatusType::FAILURE;
     }
     try {
@@ -59,30 +59,26 @@ StatusType TechSystem::addStudent(int studentId)
     return StatusType::SUCCESS;
 }
 
-
-
 StatusType TechSystem::removeStudent(int studentId)
 {
-    if(studentId <= 0){
+    if (studentId <= 0)
         return StatusType::INVALID_INPUT;
-    }
+
+    if (!students.ifExist(studentId))
+        return StatusType::FAILURE;
 
     std::shared_ptr<student> s = students.getData(studentId);
-
-
-    if(!s || s.getNumCourses() ){
+    if (s->getNumCourses() != 0)
         return StatusType::FAILURE;
-    }
-    try {
-        students.erase(s);
 
+    try {
+        students.eraseKey(studentId);
     }
-    catch(...){
+    catch (...) {
         return StatusType::ALLOCATION_ERROR;
     }
+
     return StatusType::SUCCESS;
-
-
 }
 
 
@@ -108,23 +104,25 @@ StatusType TechSystem::addCourse(int courseId, int points)
 }
 
 
-
 StatusType TechSystem::removeCourse(int courseId)
 {
     if (courseId <= 0)
         return StatusType::INVALID_INPUT;
 
-    std::shared_ptr<course> c = courses.getData(courseId);
-
-    if(!c || c->getStudentCount())
+    if (!courses.ifExist(courseId))
         return StatusType::FAILURE;
-    try {
-        courses.erase(c);
-    }
 
-    catch(...){
+    std::shared_ptr<course> c = courses.getData(courseId);
+    if (c->getStudentCount() != 0)
+        return StatusType::FAILURE;
+
+    try {
+        courses.eraseKey(courseId);
+    }
+    catch (...) {
         return StatusType::ALLOCATION_ERROR;
     }
+
     return StatusType::SUCCESS;
 }
 
@@ -159,36 +157,33 @@ StatusType TechSystem::enrollStudent(int studentId, int courseId)
 }
 
 
-
 StatusType TechSystem::completeCourse(int studentId, int courseId)
 {
     if (studentId <= 0 || courseId <= 0)
         return StatusType::INVALID_INPUT;
 
-    std::shared_ptr<course> c = courses.getData(courseId);
-
-
-    if(!c )
-         return StatusType::FAILURE;
-
-    auto& tree = c->getStudentsTree();
-    std::shared_ptr<student> s = tree.getData(studentId);
-
-    if(!s)
+    if (!courses.ifExist(courseId))
         return StatusType::FAILURE;
 
-    s->addPoints( c->getPoints());
+    auto& tree = courses.getData(courseId)->getStudentsTree();
+
+    if (!tree.ifExist(studentId))
+        return StatusType::FAILURE;
+
+    std::shared_ptr<student> s = tree.getData(studentId);
+    std::shared_ptr<course> c = courses.getData(courseId);
+
+    s->addPoints(c->getPoints());
+    s->removeCourse();
 
     try {
-        tree.erase(s);
+        tree.eraseKey(studentId);
     }
-    catch(...){
+    catch (...) {
         return StatusType::ALLOCATION_ERROR;
-
     }
-    s->removeCourse();
-    return StatusType::SUCCESS;
 
+    return StatusType::SUCCESS;
 }
 
 
@@ -203,17 +198,19 @@ StatusType TechSystem::awardAcademicPoints(int points)
 }
 
 
-
 output_t<int> TechSystem::getStudentPoints(int studentId)
 {
-    if(studebtId <= 0)
-        return output_t(StatusType::INVALID_INPUT);
+    
+    if (studentId <= 0)
+        return output_t<int>(StatusType::INVALID_INPUT);
+
+    if (!students.ifExist(studentId))
+        return output_t<int>(StatusType::FAILURE);
 
     std::shared_ptr<student> s = students.getData(studentId);
-    if(!s)
-        return output_t(StatusType::FAILURE);
 
-    return output_t(global_points - s->getBasePoints() + s->getPersonalPoints());
+       int total_points =
+        global_points - s->getBasePoints() + s->getPersonalPoints();
 
-
+    return output_t<int>(total_points);
 }
